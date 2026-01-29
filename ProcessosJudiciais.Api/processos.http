@@ -1,0 +1,52 @@
+@hostname = localhost
+@port = 5221
+@host = http://{{hostname}}:{{port}}
+
+### Listar todos os processos
+GET {{host}}/processos
+Accept: application/json
+
+### Criar um novo processo
+# Nota: O número segue o padrão CNJ (NNNNNNN-DD.AAAA.J.TR.OOOO)
+POST {{host}}/processos
+Content-Type: application/json
+
+{
+  "numero": "1111111-11.2024.8.26.0000",
+  "nomeAutor": "João da Silva",
+  "nomeReu": "Petrobras"
+}
+
+### Buscar Processo por ID
+GET {{host}}/processos/1
+Accept: application/json
+
+### Buscar processo pelo seu Número CNJ
+GET {{host}}/processos/busca/1111111-11.2024.8.26.0000
+Accept: application/json
+
+### Atualizar Processo por ID
+PUT {{host}}/processos/1
+Content-Type: application/json
+
+{
+  "numero": "1111111-11.2024.8.26.0000",
+  "nomeAutor": "Rafael Pereira",
+  "nomeReu": "Bradesco"
+}
+
+### Remover Processo por ID
+# Também deleta as movimentações (Cascade Delete)
+DELETE {{host}}/processos/1
+
+### Adicionar Movimentação a um Processo por ID
+POST {{host}}/processos/1/movimentacoes
+Content-Type: application/json
+
+{
+  "textoMovimentacao": "Expedição de certidão de publicação."
+}
+
+### Listar as Movimentações de um Processo por ID
+GET {{host}}/processos/1/movimentacoes
+Accept: application/json

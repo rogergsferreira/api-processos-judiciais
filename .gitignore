@@ -1,0 +1,80 @@
+## =====================
+## .NET / Visual Studio
+## =====================
+
+# Build results
+bin/
+obj/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+## =====================
+## Logs
+## =====================
+*.log
+
+## =====================
+## User secrets / configs
+## =====================
+
+# Arquivos de configuração local
+appsettings.Development.json
+appsettings.Local.json
+
+# Secrets
+secrets.json
+
+## =====================
+## SQL Server
+## =====================
+
+# Arquivos locais de banco
+*.mdf
+*.ldf
+
+## =====================
+## EF Core
+## =====================
+
+# Migrations temporárias (opcional, se não quiser versionar)
+# Migrations/*
+
+## =====================
+## Sistema Operacional
+## =====================
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# macOS
+.DS_Store
+
+## =====================
+## Publicações
+## =====================
+
+# Pasta de publish
+publish/
+
+# Arquivos SQL
+*.sql
