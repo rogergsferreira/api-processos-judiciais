@@ -52,7 +52,7 @@ ProcessosJudiciais.Api
 ├── 📂 Endpoints     # Definição das Rotas (Separadas por domínio)
 ├── 📂 Models        # Entidades de Domínio
 ├── 📄 Program.cs    # Configuração de DI e Pipeline
-└── 📄 processos.http # Arquivo de Testes de Integração
+└── 📄 requests.http # Arquivo de Testes de Integração
 ```
 
 ---
@@ -107,7 +107,7 @@ A API estará disponível em ```http://localhost:5221```.
 Para facilitar os testes sem a necessidade de ferramentas externas (como Postman), o projeto inclui um arquivo ```.http``` nativo.
 
 ### Como usar:
-1. Abra o arquivo ```processos.http``` no VS Code (com a extensão REST Client) ou Visual Studio 2022.
+1. Abra o arquivo ```requests.http``` no VS Code (com a extensão REST Client) ou Visual Studio 2022.
 2. Clique em **Send Request** acima de cada chamada.
 
 | Método  | Endpoint                          | Descrição                                              |
@@ -129,7 +129,7 @@ Para facilitar os testes sem a necessidade de ferramentas externas (como Postman
 
 Optei por focar meus esforços na construção de um **Backend sólido, seguro e bem estruturado**, em vez de entregar uma interface gráfica básica.
 
-A interação com a API deve ser feita através de ferramentas como **Postman**, **Insomnia** ou, preferencialmente, utilizando o arquivo **`processos.http`** incluído na raiz deste projeto, que já contém todos os cenários de teste configurados.
+A interação com a API deve ser feita através de ferramentas como **Postman**, **Insomnia** ou, preferencialmente, utilizando o arquivo **`requests.http`** incluído na raiz deste projeto, que já contém todos os cenários de teste configurados.
 
 ---
 
