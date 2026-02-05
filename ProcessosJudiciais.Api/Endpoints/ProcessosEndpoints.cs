@@ -14,7 +14,7 @@ public static class ProcessosEndpoints
 
         app.MapGet("/processos/busca/{numero}", async (string numero, ApplicationDbContext db) =>
         {
-            // Decodificação da URL caso venha com caracteres especiais:
+            // Decodificação da URL caso ela venha com caracteres especiais
             var numeroDecodificado = System.Net.WebUtility.UrlDecode(numero);
 
             var processo = await db.Processos
