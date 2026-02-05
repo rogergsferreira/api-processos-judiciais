@@ -9,7 +9,6 @@ public static class MovimentacoesEndpoints
 {
     public static void MapMovimentacoesEndpoints(this WebApplication app)
     {
-        // Listar as Movimentações de um Processo
         app.MapGet("/processos/{processoId}/movimentacoes", async (int processoId, ApplicationDbContext db) =>
         {
             var processoExiste = await db.Processos.AnyAsync(p => p.Id == processoId);
@@ -24,6 +23,7 @@ public static class MovimentacoesEndpoints
 
             return Results.Ok(movimentacoes);
         });
+        
         app.MapPost("/processos/{processoId}/movimentacoes", async (int processoId, MovimentacaoDto dto, ApplicationDbContext db) =>
         {
             var processoExiste = await db.Processos.AnyAsync(p => p.Id == processoId);
