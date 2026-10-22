@@ -21,7 +21,9 @@ public static class ProcessosEndpoints
                 .Include(p => p.Movimentacoes)
                 .FirstOrDefaultAsync(p => p.Numero == numeroDecodificado);
 
-            return processo is not null ? Results.Ok(processo) : Results.NotFound("Processo não encontrado.");
+            return processo is not null
+                ? Results.Ok(processo)
+                : Results.NotFound(new { mensagem = "Processo não encontrado." });
         });
 
         app.MapGet("/processos/{id}", async (int id, ApplicationDbContext db) =>
@@ -30,7 +32,7 @@ public static class ProcessosEndpoints
                 .FirstOrDefaultAsync(p => p.Id == id)
                 is Processo processo
                     ? Results.Ok(processo)
-                    : Results.NotFound());
+                    : Results.NotFound(new { mensagem = "Processo não encontrado." }));
 
         app.MapPost("/processos", async (ProcessoDto dto, ApplicationDbContext db) =>
         {
