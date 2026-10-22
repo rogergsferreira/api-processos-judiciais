@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    name: Build e testes
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restaurar dependências
+        run: dotnet restore ProcessosJudiciais.slnx
+
+      - name: Compilar
+        run: dotnet build ProcessosJudiciais.slnx --no-restore --configuration Release
+
+      - name: Rodar testes
+        run: dotnet test ProcessosJudiciais.slnx --no-build --configuration Release --logger "console;verbosity=normal"
+
+  compose:
+    name: Teste do docker-compose
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Subir SQL Server e API
+        run: |
+          echo "SA_PASSWORD=Ci$(openssl rand -hex 8)Aa1!" > .env
+          docker compose up -d --build --wait --wait-timeout 240
+
+      - name: Testar a API em execução
+        run: |
+          for i in $(seq 1 30); do curl -fs http://localhost:5221/processos > /dev/null && break; sleep 2; done
+          curl -fs -o /dev/null -w "Swagger UI: %{http_code}\n" http://localhost:5221/swagger/index.html
+          curl -fs -X POST http://localhost:5221/processos \
+            -H "Content-Type: application/json" \
+            -d '{"numero":"0000001-12.2024.8.26.0100","nomeAutor":"Maria da Silva","nomeReu":"Empresa Exemplo Ltda"}'
+          echo
+          status=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:5221/processos \
+            -H "Content-Type: application/json" \
+            -d '{"numero":"123","nomeAutor":"Maria da Silva","nomeReu":"Empresa Exemplo Ltda"}')
+          echo "Número inválido retornou $status"
+          test "$status" = "400"
+          curl -fs http://localhost:5221/processos/1
+          echo
+
+      - name: Logs dos containers em caso de falha
+        if: failure()
+        run: docker compose logs
+
+      - name: Derrubar ambiente
+        if: always()
+        run: docker compose down -v
