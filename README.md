@@ -135,7 +135,7 @@ Cenários cobertos:
 * `404` para processos inexistentes
 * Exclusão em cascata das movimentações ao remover um processo
 
-O pipeline do **GitHub Actions** compila, roda os testes e constrói a imagem Docker a cada push e pull request.
+O pipeline do **GitHub Actions** compila, roda os testes e sobe o ambiente completo com `docker compose` (SQL Server + API) para testar a API em execução, a cada push e pull request.
 
 ---
 
