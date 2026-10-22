@@ -39,6 +39,7 @@ appsettings.Local.json
 
 # Secrets
 secrets.json
+.env
 
 ## =====================
 ## SQL Server

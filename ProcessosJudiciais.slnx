@@ -1,3 +1,6 @@
 <Solution>
   <Project Path="ProcessosJudiciais.Api/ProcessosJudiciais.Api.csproj" />
+  <Folder Name="/tests/">
+    <Project Path="tests/ProcessosJudiciais.Api.Tests/ProcessosJudiciais.Api.Tests.csproj" />
+  </Folder>
 </Solution>
