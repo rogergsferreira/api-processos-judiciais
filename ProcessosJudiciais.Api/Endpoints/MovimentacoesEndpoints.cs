@@ -38,6 +38,13 @@ public static class MovimentacoesEndpoints
             };
 
             db.Movimentacoes.Add(novaMovimentacao);
+
+            // O processo voltou a andar: resolve os alertas de processo parado que estavam abertos
+            var alertasAbertos = await db.Alertas
+                .Where(a => a.ProcessoId == processoId && a.ResolvidoEm == null)
+                .ToListAsync();
+            alertasAbertos.ForEach(a => a.ResolvidoEm = novaMovimentacao.DataMovimentacao);
+
             await db.SaveChangesAsync();
 
             return Results.Created($"/processos/{processoId}/movimentacoes/{novaMovimentacao.Id}", new

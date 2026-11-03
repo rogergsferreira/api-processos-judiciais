@@ -54,6 +54,12 @@ jobs:
           test "$status" = "400"
           curl -fs http://localhost:5221/processos/1
           echo
+          curl -fs -X POST http://localhost:5221/alertas/verificar
+          echo
+          curl -fs http://localhost:5221/alertas
+          echo
+          curl -fs http://localhost:5221/hangfire/recurring | grep -q "verificar-processos-parados"
+          echo "Job recorrente 'verificar-processos-parados' registrado no Hangfire"
 
       - name: Logs dos containers em caso de falha
         if: failure()

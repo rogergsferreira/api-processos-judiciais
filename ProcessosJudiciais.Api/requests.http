@@ -50,3 +50,14 @@ Content-Type: application/json
 ### Listar as Movimentações de um Processo por ID
 GET {{host}}/processos/1/movimentacoes
 Accept: application/json
+
+### Listar alertas de processos parados (apenas abertos)
+GET {{host}}/alertas
+Accept: application/json
+
+### Listar todos os alertas, inclusive os já resolvidos
+GET {{host}}/alertas?apenasAbertos=false
+Accept: application/json
+
+### Rodar agora a verificação de processos parados (a mesma do job diário)
+POST {{host}}/alertas/verificar

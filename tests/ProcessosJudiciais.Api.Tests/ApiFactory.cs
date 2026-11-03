@@ -21,6 +21,13 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 {
     private readonly DbConnection _connection;
 
+    static ApiFactory()
+    {
+        // Desliga o agendamento do Hangfire nos testes (ele exigiria um SQL Server de verdade).
+        // Variável de ambiente porque o Program lê essa chave antes de montar o host.
+        Environment.SetEnvironmentVariable("Jobs__Habilitados", "false");
+    }
+
     public ApiFactory()
     {
         _connection = new SqliteConnection("DataSource=:memory:");

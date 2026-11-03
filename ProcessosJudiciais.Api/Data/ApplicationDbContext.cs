@@ -7,6 +7,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 {
     public DbSet<Processo> Processos => Set<Processo>();
     public DbSet<Movimentacao> Movimentacoes => Set<Movimentacao>();
+    public DbSet<Alerta> Alertas => Set<Alerta>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -28,6 +29,18 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasOne(m => m.Processo)
                   .WithMany(p => p.Movimentacoes)
                   .HasForeignKey(m => m.ProcessoId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Alerta>(entity =>
+        {
+            entity.ToTable("Alertas");
+            entity.HasKey(a => a.Id);
+            entity.HasIndex(a => new { a.ProcessoId, a.ResolvidoEm });
+
+            entity.HasOne(a => a.Processo)
+                  .WithMany()
+                  .HasForeignKey(a => a.ProcessoId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
     }
