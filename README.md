@@ -7,8 +7,9 @@
 ![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white)
 ![SQL Server](https://img.shields.io/badge/SQL%20Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
 ![EF Core](https://img.shields.io/badge/EF%20Core-512BD4?style=for-the-badge&logo=.net&logoColor=white)
+![Hangfire](https://img.shields.io/badge/Hangfire-1F6FEB?style=for-the-badge&logoColor=white)
 
-API REST em .NET para o gerenciamento de processos judiciais e do histórico de movimentações, com testes de integração automatizados, documentação OpenAPI e ambiente completo em Docker.
+API REST em .NET para o gerenciamento de processos judiciais e do histórico de movimentações, com rotina agendada de alertas (Hangfire), testes automatizados, documentação OpenAPI e ambiente completo em Docker.
 
 ## 📋 Sobre o Projeto
 
@@ -20,7 +21,8 @@ O objetivo deste projeto é fornecer uma solução de backend eficiente para esc
 * **Histórico Processual:** Registro e consulta de movimentações vinculadas.
 * **Busca Especializada:** Pesquisa otimizada por Número Unificado (CNJ) e ID.
 * **Validações de Integridade:** Prevenção de duplicidade de registros e *Cascade Delete* seguro.
-* **Qualidade:** Testes de integração com xUnit rodando a cada push no GitHub Actions.
+* **Alertas de Processos Parados:** Job diário com Hangfire que identifica processos sem movimentação há mais de N dias e abre um alerta, resolvido automaticamente quando o processo volta a andar.
+* **Qualidade:** Testes automatizados com xUnit rodando a cada push no GitHub Actions.
 
 ---
 
@@ -44,6 +46,15 @@ A API não expõe erros de banco de dados (500) para violações de regras de ne
 * **Cascade Delete:** Configurado via Fluent API para garantir que, ao remover um processo, suas movimentações sejam limpas automaticamente, evitando "registros órfãos".
 * **DTOs (Records):** Uso de `records` para garantir imutabilidade na transferência de dados.
 
+### 4. Rotina Agendada de Processos Parados (Hangfire)
+Escritórios precisam saber quais processos estão "esquecidos". O `VerificadorDeProcessosParados` roda todo dia (por padrão às 8h, horário de Brasília) e:
+* Considera como última atividade a movimentação mais recente do processo ou, se não houver nenhuma, a data de cadastro.
+* Abre um alerta para cada processo parado há mais dias do que o configurado (padrão: 30).
+* **Não duplica alertas:** processos com alerta aberto são ignorados nas execuções seguintes.
+* **Resolve sozinho:** ao registrar uma nova movimentação, os alertas abertos do processo são fechados.
+
+Dias, horário (cron) e fuso ficam na seção `Alertas` do `appsettings.json`. O job usa `TimeProvider`, o que permite testar as regras de data com um relógio fixo. O Hangfire guarda o agendamento no próprio SQL Server, e o painel fica em `/hangfire` no ambiente de desenvolvimento.
+
 ---
 
 ## 📂 Estrutura do Projeto
@@ -55,6 +66,7 @@ ProcessosJudiciais.Api
 ├── 📂 Data          # Contexto do Banco de Dados (EF Core)
 ├── 📂 Dtos          # Objetos de Transferência de Dados (Input Models)
 ├── 📂 Endpoints     # Definição das Rotas (Separadas por domínio)
+├── 📂 Jobs          # Rotina agendada de processos parados (Hangfire)
 ├── 📂 Models        # Entidades de Domínio
 ├── 📄 Program.cs    # Configuração de DI e Pipeline
 └── 📄 requests.http # Requisições prontas para testar manualmente
@@ -62,7 +74,9 @@ ProcessosJudiciais.Api
 tests/ProcessosJudiciais.Api.Tests
 ├── 📄 ApiFactory.cs                     # Sobe a API em memória com SQLite
 ├── 📄 ProcessosEndpointsTests.cs        # Testes dos endpoints de processos
-└── 📄 MovimentacoesEndpointsTests.cs    # Testes dos endpoints de movimentações
+├── 📄 MovimentacoesEndpointsTests.cs    # Testes dos endpoints de movimentações
+├── 📄 AlertasEndpointsTests.cs          # Testes dos endpoints de alertas
+└── 📄 VerificadorDeProcessosParadosTests.cs  # Regras do job, com relógio fixo
 ```
 
 ---
@@ -80,6 +94,9 @@ docker compose up --build
 
 * API: `http://localhost:5221`
 * Documentação interativa (Swagger UI): `http://localhost:5221/swagger`
+* Painel do Hangfire (jobs agendados): `http://localhost:5221/hangfire`
+
+> Já tinha subido uma versão anterior? Rode `docker compose down -v` antes, para o banco ser recriado com a tabela de alertas.
 
 ### Opção 2: Localmente
 
@@ -108,7 +125,19 @@ CREATE TABLE Movimentacoes (
     CONSTRAINT FK_Processo_Movimentacoes FOREIGN KEY (ProcessoId) 
     REFERENCES Processos(Id) ON DELETE CASCADE
 );
+
+CREATE TABLE Alertas (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    ProcessoId INT NOT NULL,
+    DiasSemMovimentacao INT NOT NULL,
+    CriadoEm DATETIME2 NOT NULL,
+    ResolvidoEm DATETIME2 NULL,
+    CONSTRAINT FK_Alertas_Processos FOREIGN KEY (ProcessoId)
+    REFERENCES Processos(Id) ON DELETE CASCADE
+);
 ```
+
+As tabelas do Hangfire são criadas automaticamente por ele na primeira execução.
 
 Depois, dentro da pasta `ProcessosJudiciais.Api`:
 
@@ -134,8 +163,9 @@ Cenários cobertos:
 * `409` para número duplicado, na criação e na atualização
 * `404` para processos inexistentes
 * Exclusão em cascata das movimentações ao remover um processo
+* Rotina de processos parados: limite de dias, uso da data de cadastro, não duplicação e resolução automática do alerta
 
-O pipeline do **GitHub Actions** compila, roda os testes e sobe o ambiente completo com `docker compose` (SQL Server + API) para testar a API em execução, a cada push e pull request.
+O pipeline do **GitHub Actions** compila, roda os testes e sobe o ambiente completo com `docker compose` (SQL Server + API + Hangfire) para testar a API em execução, a cada push e pull request.
 
 ---
 
@@ -156,6 +186,8 @@ Além do Swagger UI, o projeto inclui um arquivo ```.http``` nativo para testar 
 | DELETE | `/processos/{id}`                 | Remove processo e histórico.                          |
 | POST   | `/processos/{processoId}/movimentacoes`   | Adiciona nova movimentação a um processo.     |
 | GET   | `/processos/{processoId}/movimentacoes`   | Lista as movimentações de um processo.         |
+| GET    | `/alertas?apenasAbertos=true`     | Lista alertas de processos parados.                   |
+| POST   | `/alertas/verificar`              | Roda agora a verificação do job diário.               |
 
 ---
 
