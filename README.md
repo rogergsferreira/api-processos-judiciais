@@ -13,7 +13,7 @@ API REST em .NET para o gerenciamento de processos judiciais e do histórico de 
 
 ## 📋 Sobre o Projeto
 
-O objetivo deste projeto é fornecer uma solução de backend eficiente para escritórios de advocacia ou tribunais, permitindo o controle do ciclo de vida de processos jurídicos. O sistema foi desenhado com foco em **integridade de dados**, **tratamento de erros semânticos** e **alta performance** utilizando Minimal APIs.
+O objetivo deste projeto é oferecer um backend para escritórios de advocacia acompanharem o ciclo de vida dos seus processos judiciais. O foco está em **integridade de dados**, **tratamento de erros semântico** e **código testado**, usando Minimal APIs do .NET 10.
 
 ### Funcionalidades Principais
 
@@ -31,9 +31,12 @@ O objetivo deste projeto é fornecer uma solução de backend eficiente para esc
 O projeto é uma API única construída com **Minimal APIs**, com os endpoints organizados por recurso, visando clareza e manutenibilidade.
 
 ### 1. Minimal APIs & Organização de Endpoints
-Ao invés de *Controllers* tradicionais, utilizei **Minimal APIs** pela menor sobrecarga de memória e maior performance. O código foi refatorado para evitar um `Program.cs` inflado, utilizando **Extension Methods** para segregar as rotas:
+Em vez de *Controllers*, usei **Minimal APIs**, que deixam cada rota explícita e com pouco código de infraestrutura. Para o `Program.cs` não ficar inflado, as rotas ficam em **Extension Methods** separados por recurso:
 * `Endpoints/ProcessosEndpoints.cs`
 * `Endpoints/MovimentacoesEndpoints.cs`
+* `Endpoints/AlertasEndpoints.cs`
+
+A regra de negócio do job fica fora dos endpoints, em `Jobs/VerificadorDeProcessosParados.cs`, e é reaproveitada tanto pelo Hangfire quanto pelo endpoint `POST /alertas/verificar`.
 
 ### 2. Tratamento de Erros e Status HTTP
 A API não expõe erros de banco de dados (500) para violações de regras de negócio.
